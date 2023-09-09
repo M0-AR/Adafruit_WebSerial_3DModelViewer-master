@@ -492,8 +492,12 @@ function resizeRendererToDisplaySize(renderer) {
 
 
 function placeMarker(geometry) {
-  const frontVector = new THREE.Vector3(0, 0, -1); // Assuming the bunny's front is the negative Z-axis
-  const transformedVector = frontVector.applyQuaternion(bunny.quaternion);
+  const radius = 5; // Radius of the marking
+
+  // This is the "front" based on bunny's orientation
+  const transformedFrontVector = new THREE.Vector3(0, 0, -1).applyQuaternion(
+    bunny.quaternion
+  );
 
   const vertices = geometry.attributes.position.array;
   const colors = geometry.attributes.color.array;
@@ -505,12 +509,16 @@ function placeMarker(geometry) {
       vertices[i + 2]
     );
 
-    // Take the direction from the bunny's origin to the vertex
-    const direction = vertex.sub(bunny.position).normalize();
+    // Project the vertex onto the plane defined by the transformedFrontVector
+    const distanceToPlane = vertex.dot(transformedFrontVector);
+    const projectedPoint = transformedFrontVector
+      .clone()
+      .multiplyScalar(distanceToPlane);
 
-    // If the angle between the vertex direction and the bunny's transformed front is small, it's in front
-    if (direction.angleTo(transformedVector) < Math.PI / 8) {
-      // Here, PI/8 is an arbitrary threshold for "in front"
+    // Measure distance between projected point and vertex
+    const distanceToProjectedPoint = vertex.distanceTo(projectedPoint);
+
+    if (distanceToProjectedPoint <= radius) {
       colors[i] = 1; // Red
       colors[i + 1] = 0; // Green
       colors[i + 2] = 0; // Blue
