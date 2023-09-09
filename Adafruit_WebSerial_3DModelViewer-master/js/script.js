@@ -491,13 +491,17 @@ function resizeRendererToDisplaySize(renderer) {
 // }
 
 
-function placeMarker(geometry) {
-  const radius = 5; // Radius of the marking
+// Define visited at the top level but don't initialize it yet.
+let visited = null;
 
-  // This is the "front" based on bunny's orientation
-  const transformedFrontVector = new THREE.Vector3(0, 0, -1).applyQuaternion(
-    bunny.quaternion
-  );
+function placeMarker(geometry) {
+  // Initialize the visited array only if it hasn't been done before
+  if (!visited) {
+    visited = new Array(geometry.attributes.position.count).fill(false);
+  }
+
+  const frontVector = new THREE.Vector3(0, 0, -1);
+  const transformedVector = frontVector.applyQuaternion(bunny.quaternion);
 
   const vertices = geometry.attributes.position.array;
   const colors = geometry.attributes.color.array;
@@ -509,19 +513,22 @@ function placeMarker(geometry) {
       vertices[i + 2]
     );
 
-    // Project the vertex onto the plane defined by the transformedFrontVector
-    const distanceToPlane = vertex.dot(transformedFrontVector);
-    const projectedPoint = transformedFrontVector
-      .clone()
-      .multiplyScalar(distanceToPlane);
+    const direction = vertex.sub(bunny.position).normalize();
+    const distance = vertex.distanceTo(bunny.position);
 
-    // Measure distance between projected point and vertex
-    const distanceToProjectedPoint = vertex.distanceTo(projectedPoint);
-
-    if (distanceToProjectedPoint <= radius) {
+    if (direction.angleTo(transformedVector) < Math.PI / 8 && distance <= 5) {
+      visited[i / 3] = true;
       colors[i] = 1; // Red
       colors[i + 1] = 0; // Green
       colors[i + 2] = 0; // Blue
+    } else if (visited[i / 3]) {
+      colors[i] = 1; // Red
+      colors[i + 1] = 0; // Green
+      colors[i + 2] = 0; // Blue
+    } else {
+      colors[i] = 1; // Default R
+      colors[i + 1] = 1; // Default G
+      colors[i + 2] = 1; // Default B
     }
   }
 
@@ -569,7 +576,6 @@ async function render() {
       bunny.children[1].material = new THREE.MeshBasicMaterial({
         vertexColors: true,
       });
-
 
       const geometry = bunny.children[1].geometry;
       const vertexColors = new Float32Array(
