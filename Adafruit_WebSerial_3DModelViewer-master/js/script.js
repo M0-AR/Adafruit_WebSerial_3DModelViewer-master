@@ -495,11 +495,11 @@ function resizeRendererToDisplaySize(renderer) {
 let visited = null;
 
 function placeMarker(geometry) {
-  // Initialize the visited array only if it hasn't been done before
   if (!visited) {
     visited = new Array(geometry.attributes.position.count).fill(false);
   }
-
+  
+  const radius = 5; // Radius of the marking
   const frontVector = new THREE.Vector3(0, 0, -1);
   const transformedVector = frontVector.applyQuaternion(bunny.quaternion);
 
@@ -516,15 +516,19 @@ function placeMarker(geometry) {
     const direction = vertex.sub(bunny.position).normalize();
     const distance = vertex.distanceTo(bunny.position);
 
-    if (direction.angleTo(transformedVector) < Math.PI / 8 && distance <= 5) {
+    if (
+      direction.angleTo(transformedVector) < Math.PI / 16 &&
+      distance <= 2.5
+    ) {
+      // Reduced angle and distance
       visited[i / 3] = true;
-      colors[i] = 1; // Red
-      colors[i + 1] = 0; // Green
-      colors[i + 2] = 0; // Blue
+      colors[i] = 1; // Bright Red
+      colors[i + 1] = 0;
+      colors[i + 2] = 0;
     } else if (visited[i / 3]) {
-      colors[i] = 1; // Red
-      colors[i + 1] = 0; // Green
-      colors[i + 2] = 0; // Blue
+      colors[i] = 0.8; // Slightly darker Red for visited
+      colors[i + 1] = 0.2;
+      colors[i + 2] = 0.2;
     } else {
       colors[i] = 1; // Default R
       colors[i + 1] = 1; // Default G
@@ -534,6 +538,7 @@ function placeMarker(geometry) {
 
   geometry.attributes.color.needsUpdate = true;
 }
+
 
 async function render() {
   if (resizeRendererToDisplaySize(renderer)) {
