@@ -520,7 +520,6 @@ function placeMarker(geometry) {
   geometry.attributes.color.needsUpdate = true;
 }
 
-
 async function render() {
   if (resizeRendererToDisplaySize(renderer)) {
     const canvas = renderer.domElement;
