@@ -498,8 +498,7 @@ function placeMarker(geometry) {
   if (!visited) {
     visited = new Array(geometry.attributes.position.count).fill(false);
   }
-  
-  const radius = 5; // Radius of the marking
+
   const frontVector = new THREE.Vector3(0, 0, -1);
   const transformedVector = frontVector.applyQuaternion(bunny.quaternion);
 
@@ -517,7 +516,7 @@ function placeMarker(geometry) {
     const distance = vertex.distanceTo(bunny.position);
 
     if (
-      direction.angleTo(transformedVector) < Math.PI / 16 &&
+      direction.angleTo(transformedVector) < Math.PI / 16 && // Make main ciricle smaller by dividing over bigger number instead of 16 and vice verca.
       distance <= 2.5
     ) {
       // Reduced angle and distance
