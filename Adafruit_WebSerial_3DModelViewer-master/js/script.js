@@ -406,7 +406,7 @@ let bunny;
 const renderer = new THREE.WebGLRenderer({canvas});
 
 const camera = new THREE.PerspectiveCamera(45, canvas.width/canvas.height, 0.1, 100);
-camera.position.set(0, 0, 30);
+camera.position.set(0, 0, 40);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('black');
@@ -516,7 +516,7 @@ function placeMarker(geometry) {
     const distance = vertex.distanceTo(bunny.position);
 
     if (
-      direction.angleTo(transformedVector) < Math.PI / 16 && // Make main ciricle smaller by dividing over bigger number instead of 16 and vice verca.
+      direction.angleTo(transformedVector) < Math.PI / 32 && // Make main ciricle smaller by dividing over bigger number instead of 16 and vice verca.
       distance <= 2.5
     ) {
       // Reduced angle and distance
@@ -566,6 +566,26 @@ async function render() {
         );
         bunny.setRotationFromEuler(rotationEuler);
       }
+      bunny.children[1].material = new THREE.MeshBasicMaterial({
+        vertexColors: true,
+      });
+
+      const geometry = bunny.children[1].geometry;
+      const vertexColors = new Float32Array(
+        geometry.attributes.position.count * 3
+      );
+      for (let i = 0; i < vertexColors.length; i += 3) {
+        vertexColors[i] = 1; // R
+        vertexColors[i + 1] = 1; // G
+        vertexColors[i + 2] = 1; // B
+      }
+      geometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(vertexColors, 3)
+      );
+
+      placeMarker(geometry);
+      
     } else {
       let rotationQuaternion = new THREE.Quaternion(
         quaternion[1],
