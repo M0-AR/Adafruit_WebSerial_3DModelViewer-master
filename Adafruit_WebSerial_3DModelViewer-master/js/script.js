@@ -430,10 +430,11 @@ scene.background = new THREE.Color('black');
 
 {
   const objLoader = new OBJLoader();
-  objLoader.load('assets/u.obj', (root) => {
+  objLoader.load('assets/ball.obj', (root) => {
     bunny = root;
     // Scale the object. The same value for x, y, and z will keep the proportions.
-    bunny.scale.set(0.2, 0.2, 0.2); // This scales the object to half its original size.
+    // bunny.scale.set(0.2, 0.2, 0.2); // This scales the object to half its original size. // for u.obj
+    bunny.scale.set(0.5, 0.5, 0.5); // This scales the object to half its original size.
     scene.add(root);
   });
 }
