@@ -12,6 +12,7 @@ import * as THREE from 'three';
 import {OBJLoader} from 'objloader';
 import { STLLoader } from "stlloader";
 import { VRMLLoader } from "vrmlloader";
+import { OrbitControls } from "orbitcontrols";
 
 
 let port;
@@ -406,7 +407,11 @@ let bunny;
 const renderer = new THREE.WebGLRenderer({canvas});
 
 const camera = new THREE.PerspectiveCamera(45, canvas.width/canvas.height, 0.1, 100);
-camera.position.set(0, 0, 40);
+camera.position.set(0, 0, 30);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0, 0); // Set target to the center of the scene (where the bunny is)
+controls.update();
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('black');
@@ -450,47 +455,6 @@ function resizeRendererToDisplaySize(renderer) {
   return needResize;
 }
 
-// async function render() {
-//   if (resizeRendererToDisplaySize(renderer)) {
-//     const canvas = renderer.domElement;
-//     camera.aspect = canvas.clientWidth / canvas.clientHeight;
-//     camera.updateProjectionMatrix();
-//   }
-
-//   if (bunny != undefined) {
-//     if (angleType.value == "euler") {
-//       if (showCalibration) {
-//           // BNO055
-//         let rotationEuler = new THREE.Euler(
-//           THREE.MathUtils.degToRad(360 - orientation[2]),
-//           THREE.MathUtils.degToRad(orientation[0]),
-//           THREE.MathUtils.degToRad(orientation[1]),
-//           'YZX'
-//         );
-//         bunny.setRotationFromEuler(rotationEuler);
-//       } else {
-//         let rotationEuler = new THREE.Euler(
-//           THREE.MathUtils.degToRad(orientation[2]),
-//           THREE.MathUtils.degToRad(orientation[0]-180),
-//           THREE.MathUtils.degToRad(-orientation[1]),
-//           'YZX'
-//         );
-//         bunny.setRotationFromEuler(rotationEuler);
-//       }
-//     } else {
-//       let rotationQuaternion = new THREE.Quaternion(quaternion[1], quaternion[3], -quaternion[2], quaternion[0]);
-//       bunny.setRotationFromQuaternion(rotationQuaternion);
-//       placeMarker(bunny.position); # TODO:
-//     }
-//   }
-
-//   renderer.render(scene, camera);
-//   updateCalibration();
-//   await sleep(10); // Allow 10ms for UI updates
-//   await finishDrawing();
-//   await render();
-// }
-
 
 // Define visited at the top level but don't initialize it yet.
 let visited = null;
@@ -500,8 +464,14 @@ function placeMarker(geometry) {
     visited = new Array(geometry.attributes.position.count).fill(false);
   }
 
-  const frontVector = new THREE.Vector3(0, 0, -1);
-  const transformedVector = frontVector.applyQuaternion(bunny.quaternion);
+  // Convert the sensor's orientation to a directional vector:
+  const phi = THREE.MathUtils.degToRad(orientation[0]);
+  const theta = THREE.MathUtils.degToRad(orientation[1]);
+  const transformedVector = new THREE.Vector3(
+    Math.sin(theta) * Math.cos(phi),
+    Math.sin(theta) * Math.sin(phi),
+    Math.cos(theta)
+  );
 
   const vertices = geometry.attributes.position.array;
   const colors = geometry.attributes.color.array;
@@ -514,13 +484,11 @@ function placeMarker(geometry) {
     );
 
     const direction = vertex.sub(bunny.position).normalize();
-    const distance = vertex.distanceTo(bunny.position);
 
     if (
-      direction.angleTo(transformedVector) < Math.PI / 32 && // Make main ciricle smaller by dividing over bigger number instead of 16 and vice verca.
-      distance <= 2.5
+      direction.angleTo(transformedVector) < Math.PI / 32 &&
+      vertex.distanceTo(bunny.position) <= 2.5
     ) {
-      // Reduced angle and distance
       visited[i / 3] = true;
       colors[i] = 1; // Bright Red
       colors[i + 1] = 0;
@@ -539,8 +507,9 @@ function placeMarker(geometry) {
   geometry.attributes.color.needsUpdate = true;
 }
 
-
 async function render() {
+  controls.update(); // Add this line at the start of your render function.
+
   if (resizeRendererToDisplaySize(renderer)) {
     const canvas = renderer.domElement;
     camera.aspect = canvas.clientWidth / canvas.clientHeight;
@@ -557,7 +526,7 @@ async function render() {
           THREE.MathUtils.degToRad(orientation[1]),
           "YZX"
         );
-        bunny.setRotationFromEuler(rotationEuler);
+        // bunny.setRotationFromEuler(rotationEuler);
       } else {
         let rotationEuler = new THREE.Euler(
           THREE.MathUtils.degToRad(orientation[2]),
@@ -565,8 +534,9 @@ async function render() {
           THREE.MathUtils.degToRad(-orientation[1]),
           "YZX"
         );
-        bunny.setRotationFromEuler(rotationEuler);
+        // bunny.setRotationFromEuler(rotationEuler);
       }
+
       bunny.children[1].material = new THREE.MeshBasicMaterial({
         vertexColors: true,
       });
@@ -586,7 +556,6 @@ async function render() {
       );
 
       placeMarker(geometry);
-      
     } else {
       let rotationQuaternion = new THREE.Quaternion(
         quaternion[1],
@@ -595,9 +564,6 @@ async function render() {
         quaternion[0]
       );
       bunny.setRotationFromQuaternion(rotationQuaternion);
-      // bunny.children[1].material = new THREE.MeshBasicMaterial({
-      //   color: 0xff0000,
-      // }); // Entire bunny should appear red
       bunny.children[1].material = new THREE.MeshBasicMaterial({
         vertexColors: true,
       });
