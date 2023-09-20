@@ -443,12 +443,12 @@ function makeCubeInvisible(parentObject) {
 
 {
   const objLoader = new OBJLoader();
-  objLoader.load('assets/ball.obj', (root) => {
+  objLoader.load('assets/earth02.obj', (root) => {
     bunny = root;
     // Scale the object. The same value for x, y, and z will keep the proportions.
     // bunny.scale.set(0.2, 0.2, 0.2); // This scales the object to half its original size. // for u.obj
-    bunny.scale.set(0.5, 0.5, 0.5); // This scales the object to half its original size.
-    // bunny.scale.set(10, 10, 10); // This scales the object to half its original size.
+    // bunny.scale.set(0.5, 0.5, 0.5); // This scales the object to half its original size.
+    bunny.scale.set(10, 10, 10); // This scales the object to half its original size.
     scene.add(root);
 
     // Call the function to make the cube invisible
@@ -468,6 +468,7 @@ function resizeRendererToDisplaySize(renderer) {
 }
 
 
+// Define visited at the top level but don't initialize it yet.
 let visited = null;
 
 function placeMarker(geometry) {
@@ -495,7 +496,7 @@ function placeMarker(geometry) {
     const direction = vertex.sub(bunny.position).normalize();
 
     if (
-      direction.angleTo(transformedVector) < Math.PI / 26 &&
+      direction.angleTo(transformedVector) < Math.PI / 34 &&
       vertex.distanceTo(bunny.position) <= 2.5
     ) {
       visited[i / 3] = true;
@@ -561,7 +562,9 @@ async function render() {
 
     const material = new THREE.MeshBasicMaterial({
       vertexColors: true,
-      wireframe: true, // Added wireframe property here
+      // wireframe: true, // Added wireframe property here
+      transparent: true,
+      opacity: 0.5
     });
 
     bunny.children[1].material = material;
@@ -574,6 +577,7 @@ async function render() {
   await finishDrawing();
   await render();
 }
+
 
 function createTextCanvas(text, width, height) {
   const canvas = document.createElement("canvas");
