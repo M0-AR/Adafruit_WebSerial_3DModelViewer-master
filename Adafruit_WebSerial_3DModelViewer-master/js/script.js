@@ -433,6 +433,14 @@ scene.background = new THREE.Color('black');
   scene.add(light.target);
 }
 
+function makeCubeInvisible(parentObject) {
+  parentObject.traverse((child) => {
+    if (child.isMesh && child.name === "Cube") {
+      child.visible = false;
+    }
+  });
+}
+
 {
   const objLoader = new OBJLoader();
   objLoader.load('assets/ball.obj', (root) => {
@@ -442,6 +450,9 @@ scene.background = new THREE.Color('black');
     bunny.scale.set(0.5, 0.5, 0.5); // This scales the object to half its original size.
     // bunny.scale.set(10, 10, 10); // This scales the object to half its original size.
     scene.add(root);
+
+    // Call the function to make the cube invisible
+    makeCubeInvisible(bunny);
   });
 }
 
@@ -457,7 +468,6 @@ function resizeRendererToDisplaySize(renderer) {
 }
 
 
-// Define visited at the top level but don't initialize it yet.
 let visited = null;
 
 function placeMarker(geometry) {
@@ -465,7 +475,6 @@ function placeMarker(geometry) {
     visited = new Array(geometry.attributes.position.count).fill(false);
   }
 
-  // Convert the sensor's orientation to a directional vector:
   const phi = THREE.MathUtils.degToRad(orientation[0]);
   const theta = THREE.MathUtils.degToRad(orientation[1]);
   const transformedVector = new THREE.Vector3(
@@ -483,25 +492,20 @@ function placeMarker(geometry) {
       vertices[i + 1],
       vertices[i + 2]
     );
-
     const direction = vertex.sub(bunny.position).normalize();
 
     if (
-      direction.angleTo(transformedVector) < Math.PI / 32 &&
+      direction.angleTo(transformedVector) < Math.PI / 26 &&
       vertex.distanceTo(bunny.position) <= 2.5
     ) {
       visited[i / 3] = true;
-      colors[i] = 1; // Bright Red
+      colors[i] = 1;
       colors[i + 1] = 0;
       colors[i + 2] = 0;
     } else if (visited[i / 3]) {
-      colors[i] = 0.8; // Slightly darker Red for visited
+      colors[i] = 0.8;
       colors[i + 1] = 0.2;
       colors[i + 2] = 0.2;
-    } else {
-      colors[i] = 1; // Default R
-      colors[i + 1] = 1; // Default G
-      colors[i + 2] = 1; // Default B
     }
   }
 
@@ -509,98 +513,74 @@ function placeMarker(geometry) {
 }
 
 async function render() {
-  controls.update(); // Add this line at the start of your render function.
-  
+  controls.update();
+
   if (resizeRendererToDisplaySize(renderer)) {
     const canvas = renderer.domElement;
     camera.aspect = canvas.clientWidth / canvas.clientHeight;
     camera.updateProjectionMatrix();
   }
 
-  if (bunny !== undefined) {
-    if (angleType.value === "euler") {
-      if (showCalibration) {
-        // BNO055
-        let rotationEuler = new THREE.Euler(
-          THREE.MathUtils.degToRad(360 - orientation[2]),
-          THREE.MathUtils.degToRad(orientation[0]),
-          THREE.MathUtils.degToRad(orientation[1]),
-          "YZX"
-        );
-        // bunny.setRotationFromEuler(rotationEuler);
-      } else {
-        let rotationEuler = new THREE.Euler(
-          THREE.MathUtils.degToRad(orientation[2]),
-          THREE.MathUtils.degToRad(orientation[0] - 180),
-          THREE.MathUtils.degToRad(-orientation[1]),
-          "YZX"
-        );
-        // bunny.setRotationFromEuler(rotationEuler);
-      }
+  if (bunny) {
+    const targetGeometry = bunny.children[1].geometry; // Ensure this targets the right mesh
 
-      bunny.children[1].material = new THREE.MeshBasicMaterial({
-        vertexColors: true,
-      });
-
-      const geometry = bunny.children[1].geometry;
+    if (!targetGeometry.attributes.color) {
       const vertexColors = new Float32Array(
-        geometry.attributes.position.count * 3
-      );
-      for (let i = 0; i < vertexColors.length; i += 3) {
-        vertexColors[i] = 1; // R
-        vertexColors[i + 1] = 1; // G
-        vertexColors[i + 2] = 1; // B
-      }
-      geometry.setAttribute(
+        targetGeometry.attributes.position.count * 3
+      ).fill(1);
+      targetGeometry.setAttribute(
         "color",
         new THREE.BufferAttribute(vertexColors, 3)
       );
+    }
 
-      placeMarker(geometry);
+    if (angleType.value === "euler") {
+      const rotationEuler = showCalibration
+        ? new THREE.Euler(
+            THREE.MathUtils.degToRad(360 - orientation[2]),
+            THREE.MathUtils.degToRad(orientation[0]),
+            THREE.MathUtils.degToRad(orientation[1]),
+            "YZX"
+          )
+        : new THREE.Euler(
+            THREE.MathUtils.degToRad(orientation[2]),
+            THREE.MathUtils.degToRad(orientation[0] - 180),
+            THREE.MathUtils.degToRad(-orientation[1]),
+            "YZX"
+          );
+      // bunny.setRotationFromEuler(rotationEuler);
     } else {
-      let rotationQuaternion = new THREE.Quaternion(
+      const rotationQuaternion = new THREE.Quaternion(
         quaternion[1],
         quaternion[3],
         -quaternion[2],
         quaternion[0]
       );
-      bunny.setRotationFromQuaternion(rotationQuaternion);
-      bunny.children[1].material = new THREE.MeshBasicMaterial({
-        vertexColors: true,
-      });
-
-      const geometry = bunny.children[1].geometry;
-      const vertexColors = new Float32Array(
-        geometry.attributes.position.count * 3
-      );
-      for (let i = 0; i < vertexColors.length; i += 3) {
-        vertexColors[i] = 1; // R
-        vertexColors[i + 1] = 1; // G
-        vertexColors[i + 2] = 1; // B
-      }
-      geometry.setAttribute(
-        "color",
-        new THREE.BufferAttribute(vertexColors, 3)
-      );
-
-      placeMarker(geometry);
+      // bunny.setRotationFromQuaternion(rotationQuaternion);
     }
-  }
 
+    const material = new THREE.MeshBasicMaterial({
+      vertexColors: true,
+      wireframe: true, // Added wireframe property here
+    });
+
+    bunny.children[1].material = material;
+
+    placeMarker(targetGeometry);
+  }
   renderer.render(scene, camera);
   updateCalibration();
-  await sleep(10); // Allow 10ms for UI updates
+  await sleep(10);
   await finishDrawing();
   await render();
 }
-
 
 function createTextCanvas(text, width, height) {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const context = canvas.getContext("2d");
-  context.fillStyle = "green";
+  context.fillStyle = "red";
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.font = "20px Arial";
