@@ -562,9 +562,9 @@ async function render() {
 
     const material = new THREE.MeshBasicMaterial({
       vertexColors: true,
-      // wireframe: true, // Added wireframe property here
+      wireframe: true, // Added wireframe property here
       transparent: true,
-      opacity: 0.5
+      opacity: 0.1
     });
 
     bunny.children[1].material = material;
