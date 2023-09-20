@@ -440,6 +440,7 @@ scene.background = new THREE.Color('black');
     // Scale the object. The same value for x, y, and z will keep the proportions.
     // bunny.scale.set(0.2, 0.2, 0.2); // This scales the object to half its original size. // for u.obj
     bunny.scale.set(0.5, 0.5, 0.5); // This scales the object to half its original size.
+    // bunny.scale.set(10, 10, 10); // This scales the object to half its original size.
     scene.add(root);
   });
 }
@@ -509,7 +510,7 @@ function placeMarker(geometry) {
 
 async function render() {
   controls.update(); // Add this line at the start of your render function.
-
+  
   if (resizeRendererToDisplaySize(renderer)) {
     const canvas = renderer.domElement;
     camera.aspect = canvas.clientWidth / canvas.clientHeight;
@@ -592,3 +593,38 @@ async function render() {
   await finishDrawing();
   await render();
 }
+
+
+function createTextCanvas(text, width, height) {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  context.fillStyle = "green";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.font = "20px Arial";
+  context.fillText(text, width / 2, height / 2);
+  return canvas;
+}
+
+function addDirectionLabel(direction, position) {
+  const canvas = createTextCanvas(direction, 100, 30);
+  const texture = new THREE.CanvasTexture(canvas);
+  const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+  const sprite = new THREE.Sprite(spriteMaterial);
+  sprite.position.copy(position);
+  sprite.scale.set(5, 1.5, 1);
+  scene.add(sprite);
+}
+
+// Add labels for directions
+addDirectionLabel("UP", new THREE.Vector3(0, 10, 0));
+addDirectionLabel("DOWN", new THREE.Vector3(0, -10, 0));
+addDirectionLabel("LEFT", new THREE.Vector3(-10, 0, 0));
+addDirectionLabel("RIGHT", new THREE.Vector3(10, 0, 0));
+addDirectionLabel("FRONT", new THREE.Vector3(0, 0, 10));
+addDirectionLabel("BACK", new THREE.Vector3(0, 0, -10));
+
+////////////////////
+
