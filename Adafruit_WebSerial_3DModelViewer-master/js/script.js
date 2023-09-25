@@ -414,7 +414,7 @@ controls.target.set(0, 0, 0); // Set target to the center of the scene (where th
 controls.update();
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('black');
+scene.background = new THREE.Color(0x444444);
 {
   const skyColor = 0xB1E1FF;  // light blue
   const groundColor = 0x666666;  // black
@@ -500,11 +500,11 @@ function placeMarker(geometry) {
       vertex.distanceTo(bunny.position) <= 2.5
     ) {
       visited[i / 3] = true;
-      colors[i] = 1;
-      colors[i + 1] = 0;
-      colors[i + 2] = 0;
+      colors[i] = 1; // Red
+      colors[i + 1] = 0; // Green
+      colors[i + 2] = 1; // Blue
     } else if (visited[i / 3]) {
-      colors[i] = 0.8;
+      colors[i] = 1;
       colors[i + 1] = 0.2;
       colors[i + 2] = 0.2;
     }
@@ -564,7 +564,7 @@ async function render() {
       vertexColors: true,
       wireframe: true, // Added wireframe property here
       transparent: true,
-      opacity: 0.1
+      opacity: 0.1,
     });
 
     bunny.children[1].material = material;
@@ -584,10 +584,11 @@ function createTextCanvas(text, width, height) {
   canvas.width = width;
   canvas.height = height;
   const context = canvas.getContext("2d");
-  context.fillStyle = "red";
+  // context.fillStyle = "rgb(100, 100, 100)";
+  context.fillStyle = "white";
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.font = "20px Arial";
+  context.font = "15px Arial";
   context.fillText(text, width / 2, height / 2);
   return canvas;
 }
@@ -609,6 +610,3 @@ addDirectionLabel("LEFT", new THREE.Vector3(-10, 0, 0));
 addDirectionLabel("RIGHT", new THREE.Vector3(10, 0, 0));
 addDirectionLabel("FRONT", new THREE.Vector3(0, 0, 10));
 addDirectionLabel("BACK", new THREE.Vector3(0, 0, -10));
-
-////////////////////
-
