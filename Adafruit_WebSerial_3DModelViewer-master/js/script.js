@@ -2,6 +2,7 @@
 // included in another file (in this case, `index.html`)
 // Note: the code will still work without this line, but without it you
 // will see an error in the editor
+
 /* global THREE */
 /* global TransformStream */
 /* global TextEncoderStream */
