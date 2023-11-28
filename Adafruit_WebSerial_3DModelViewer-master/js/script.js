@@ -471,47 +471,68 @@ function resizeRendererToDisplaySize(renderer) {
 // Define visited at the top level but don't initialize it yet.
 let visited = null;
 
-function placeMarker(geometry) {
+// function placeMarker(geometry, radius= 2.5) {
+function placeMarker(geometry, radius= 2.49) {
   if (!visited) {
     visited = new Array(geometry.attributes.position.count).fill(false);
   }
 
-  const phi = THREE.MathUtils.degToRad(orientation[0]);
-  const theta = THREE.MathUtils.degToRad(orientation[1]);
-  const transformedVector = new THREE.Vector3(
-    Math.sin(theta) * Math.cos(phi),
-    Math.sin(theta) * Math.sin(phi),
-    Math.cos(theta)
-  );
+  // Get Euler angles in radians
+  const yaw = THREE.MathUtils.degToRad(orientation[0]); // Yaw (phi)
+  const pitch = THREE.MathUtils.degToRad(orientation[1]); // Pitch (theta)
+  // const zValue = THREE.MathUtils.degToRad(orientation[1]); // Pitch (theta)
+  var zValue = orientation[2]; // Z-value from the sensor
+
+
+  // Adjusted spherical coordinates
+  const adjustedPhi = yaw;
+  const adjustedTheta = Math.PI / 1 - (pitch + zValue*0.09); // Subtract from PI/2 for correct polar angle
+
+  // Convert to Cartesian coordinates (x, y, z) on the sphere's surface
+  var x = radius * Math.sin(adjustedTheta) * Math.cos(adjustedPhi);
+  var y = radius * Math.sin(adjustedTheta) * Math.sin(adjustedPhi);
+  var z = radius * Math.cos(adjustedTheta);
+
+  const markerPosition = new THREE.Vector3(x, y, z);
 
   const vertices = geometry.attributes.position.array;
   const colors = geometry.attributes.color.array;
 
+  // Assuming 'geometry' has vertices that represent points on the sphere's surface
   for (let i = 0; i < vertices.length; i += 3) {
     const vertex = new THREE.Vector3(
-      vertices[i],
-      vertices[i + 1],
-      vertices[i + 2]
+        vertices[i],
+        vertices[i + 1],
+        vertices[i + 2]
     );
-    const direction = vertex.sub(bunny.position).normalize();
 
-    if (
-      direction.angleTo(transformedVector) < Math.PI / 34 &&
-      vertex.distanceTo(bunny.position) <= 2.5
-    ) {
-      visited[i / 3] = true;
-      colors[i] = 1; // Red
-      colors[i + 1] = 0; // Green
-      colors[i + 2] = 1; // Blue
+    // Check if this vertex is close enough to the marker position
+    if (vertex.distanceTo(markerPosition) < 1.53) {
+        visited[i / 3] = true;
+        // Set the color for this vertex (marker color)
+        colors[i] = 0; // Red
+        colors[i + 1] = 1; // Green
+        colors[i + 2] = 0; // Blue
     } else if (visited[i / 3]) {
-      colors[i] = 1;
-      colors[i + 1] = 0.2;
-      colors[i + 2] = 0.2;
+        // Reset the color for this vertex
+        colors[i] = 1;
+        colors[i + 1] = 0.2;
+        colors[i + 2] = 0.2;
     }
   }
 
   geometry.attributes.color.needsUpdate = true;
 }
+
+
+function mapZValueToPitch(zValue) {
+  // Map the Z-value to a pitch adjustment
+  // This function should be tailored based on how the Z-value relates to vertical movement
+  // For example, if Z-value represents a forward/backward tilt:
+  const pitchAdjustmentFactor = 0.03; // Adjust this factor based on sensitivity
+  return zValue * pitchAdjustmentFactor; // Convert Z-value to radians
+}
+
 
 async function render() {
   controls.update();
@@ -606,7 +627,7 @@ function addDirectionLabel(direction, position) {
 // Add labels for directions
 addDirectionLabel("UP", new THREE.Vector3(0, 10, 0));
 addDirectionLabel("DOWN", new THREE.Vector3(0, -10, 0));
-addDirectionLabel("LEFT", new THREE.Vector3(-10, 0, 0));
-addDirectionLabel("RIGHT", new THREE.Vector3(10, 0, 0));
+addDirectionLabel("RIGHT", new THREE.Vector3(-10, 0, 0));
+addDirectionLabel("LEFT", new THREE.Vector3(10, 0, 0));
 addDirectionLabel("FRONT", new THREE.Vector3(0, 0, 10));
 addDirectionLabel("BACK", new THREE.Vector3(0, 0, -10));
