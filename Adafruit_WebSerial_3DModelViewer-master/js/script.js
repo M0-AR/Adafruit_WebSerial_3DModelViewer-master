@@ -6,6 +6,7 @@
 /* global TransformStream */
 /* global TextEncoderStream */
 /* global TextDecoderStream */
+
 'use strict';
 
 import * as THREE from 'three';
