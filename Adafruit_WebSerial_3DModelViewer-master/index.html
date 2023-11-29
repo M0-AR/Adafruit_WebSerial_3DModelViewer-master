@@ -45,7 +45,7 @@
         <button id="butConnect" type="button">Connect</button>
         <select id="baudRate"></select>
         <span>
-          <select id="angle_type">
+          <select id="angle_type" style="display: none;">
             <option value="quaternion">Quaternions</option>
             <option value="euler">Euler Angles</option>
           </select>
@@ -55,11 +55,11 @@
       <div class="animation-container">
         <canvas id="canvas"></canvas>
       </div>
-      <div id="log-container" class="row">
+      <div id="log-container" class="row" style="display: none;">
         <div id="log" class="log"></div>
         <div id="calibration" class="calibration-container"></div>
       </div>
-      <div class="controls">
+      <div class="controls" style="display: none;">
         <input type="checkbox" id="autoscroll"> Autoscroll
         <input type="checkbox" id="showTimestamp"> Show Timestamp
         <button id="butClear" type="button">Clear</button>
