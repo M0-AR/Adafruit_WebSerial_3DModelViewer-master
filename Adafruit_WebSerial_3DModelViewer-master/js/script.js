@@ -6,7 +6,6 @@
 /* global TransformStream */
 /* global TextEncoderStream */
 /* global TextDecoderStream */
-
 'use strict';
 
 import * as THREE from 'three';
@@ -408,7 +407,7 @@ let bunny;
 const renderer = new THREE.WebGLRenderer({canvas});
 
 const camera = new THREE.PerspectiveCamera(45, canvas.width/canvas.height, 0.1, 100);
-camera.position.set(0, 0, 30);
+camera.position.set(0, 5, 30);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 0, 0); // Set target to the center of the scene (where the bunny is)
@@ -468,6 +467,41 @@ function resizeRendererToDisplaySize(renderer) {
   return needResize;
 }
 
+{
+  // Function to save orientation
+  function saveOrientation() {
+    const rotation = bunny.rotation;
+    localStorage.setItem('orientation', JSON.stringify({x: rotation.x, y: rotation.y, z: rotation.z}));
+  }
+
+  // Function to load orientation
+  function loadOrientation() {
+    const savedRotation = JSON.parse(localStorage.getItem('orientation'));
+    console.log("loadOrientation()")
+    if (savedRotation) {
+      savedRotation.y = savedRotation.y - 10
+      console.log(saveOrientation)
+      bunny.rotation.set(savedRotation.x, savedRotation.y, savedRotation.z);
+    }
+  }
+
+  // Call loadOrientation when initializing your scene
+  {
+    // loadOrientation();
+  }
+
+  // ... rest of your code ...
+  // When updating orientation (for example, in your render function)
+  function updateOrientation(newOrientation) {
+    // Apply new orientation to the bunny
+    bunny.rotation.set(newOrientation.x, newOrientation.y, newOrientation.z);
+    
+    // Save the new orientation
+    saveOrientation();
+  }
+}
+
+
 
 // Define visited at the top level but don't initialize it yet.
 let visited = null;
@@ -513,15 +547,22 @@ function placeMarker(geometry, radius= 2.5) {
     // Check if this vertex is close enough to the marker position
     if (vertex.distanceTo(markerPosition) < 1.52) {
         visited[i / 3] = true;
-        // Set the color for this vertex (marker color)
-        colors[i] = 0; // Red
-        colors[i + 1] = 1; // Green
+        // Set a different color for vertices on the other half
+        colors[i] = 1; // Red
+        colors[i + 1] = 0; // Green
         colors[i + 2] = 0; // Blue
     } else if (visited[i / 3]) {
-        // Reset the color for this vertex
-        colors[i] = 1;
-        colors[i + 1] = 0.2;
-        colors[i + 2] = 0.2;
+        if (vertices[i+2] >= 0) {
+          // Reset the color for this vertex
+          colors[i] = 0.2;
+          colors[i + 1] = 1;
+          colors[i + 2] = 0.2;
+        } else {
+          // Reset the color for this vertex
+          colors[i] = 0.2;
+          colors[i + 1] = 0.2;
+          colors[i + 2] = 1;
+        }
     }
   }
 
@@ -608,13 +649,45 @@ function createTextCanvas(text, width, height) {
   return canvas;
 }
 
+// function addDirectionLabel(direction, position) {
+//   const canvas = createTextCanvas(direction, 100, 30);
+//   const texture = new THREE.CanvasTexture(canvas);
+//   const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+//   const sprite = new THREE.Sprite(spriteMaterial);
+//   sprite.position.copy(position);
+//   sprite.scale.set(5, 1.5, 1);
+//   scene.add(sprite);
+// }
+
 function addDirectionLabel(direction, position) {
-  const canvas = createTextCanvas(direction, 100, 30);
-  const texture = new THREE.CanvasTexture(canvas);
+  // Split the direction text into lines
+  const lines = direction.split('\n');
+  
+  // Create separate canvases for each line of text
+  const canvases = lines.map(line => createTextCanvas(line, 100, 30));
+  
+  // Calculate the total height of all canvases
+  const totalHeight = canvases.reduce((sum, canvas) => sum + canvas.height, 0);
+  
+  // Create a container canvas to hold all lines
+  const containerCanvas = document.createElement("canvas");
+  containerCanvas.width = 100;
+  containerCanvas.height = totalHeight;
+  const context = containerCanvas.getContext("2d");
+  
+  // Fill the container canvas with individual canvases
+  let yOffset = 0;
+  canvases.forEach(canvas => {
+    context.drawImage(canvas, 0, yOffset);
+    yOffset += canvas.height;
+  });
+
+  // Create a texture from the container canvas
+  const texture = new THREE.CanvasTexture(containerCanvas);
   const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
   const sprite = new THREE.Sprite(spriteMaterial);
   sprite.position.copy(position);
-  sprite.scale.set(5, 1.5, 1);
+  sprite.scale.set(4, 2, 1);
   scene.add(sprite);
 }
 
@@ -624,4 +697,4 @@ addDirectionLabel("DOWN", new THREE.Vector3(0, -10, 0));
 addDirectionLabel("RIGHT", new THREE.Vector3(-10, 0, 0));
 addDirectionLabel("LEFT", new THREE.Vector3(10, 0, 0));
 addDirectionLabel("FRONT", new THREE.Vector3(0, 0, 10));
-addDirectionLabel("BACK", new THREE.Vector3(0, 0, -10));
+addDirectionLabel("BACK\nSTART HERE", new THREE.Vector3(0, 0, -10));
