@@ -9,11 +9,11 @@
      <script type="importmap">
         {
             "imports": {
-                "three": "https://threejs.org/build/three.module.js",
-                "objloader": "https://threejs.org/examples/jsm/loaders/OBJLoader.js",
-                "stlloader": "https://threejs.org/examples/jsm/loaders/STLLoader.js",
-                "vrmlloader": "https://threejs.org/examples/jsm/loaders/VRMLLoader.js",
-                "orbitcontrols": "https://threejs.org/examples/jsm/controls/OrbitControls.js"
+                "three": "./libs/three.module.js",
+                "objloader": "./libs/OBJLoader.js",
+                "stlloader": "./libs/STLLoader.js",
+                "vrmlloader": "./libs/VRMLLoader.js",
+                "orbitcontrols": "./libs/OrbitControls.js"
             }
         }
     </script> 
@@ -27,8 +27,21 @@
     <script type="module" src="js/script.js" defer></script>
   </head>
   <body>
+    
     <header class="header">
-      <h1>Adafruit 3D Model Viewer</h1>
+      <!-- <h1>Adafruit 3D Model Viewer</h1> -->
+      <h1>Bladder AI Project</h1>
+      <div class="controls">
+        <button id="butConnect" type="button">Connect</button>
+        <select id="baudRate" style="display: none;"></select>
+        <span style="display: none;">
+          <select id="angle_type">
+            <option value="quaternion">Quaternions</option>
+            <option value="euler">Euler Angles</option>
+          </select>
+         </span>
+        <input type="checkbox" id="darkmode"> Dark Mode
+      </div>
     </header>
     <main class="main">
       <div id="notSupported" class="notSupported">
@@ -41,30 +54,42 @@
         Sorry, <b>WebGL</b> is not supported on this device.
       </div>
 
-      <div class="controls">
+      <!-- <div class="controls">
         <button id="butConnect" type="button">Connect</button>
-        <select id="baudRate"></select>
-        <span>
+        <select id="baudRate" style="display: none;"></select>
+        <span style="display: none;">
           <select id="angle_type">
             <option value="quaternion">Quaternions</option>
             <option value="euler">Euler Angles</option>
           </select>
          </span>
         <input type="checkbox" id="darkmode"> Dark Mode
-      </div>
+      </div> -->
+
+    <img id="videoStream" src="" alt="Video Stream">
+    <script type="text/javascript" src="/eel.js"></script>
+    <script>
+        eel.expose(updateImageSrc);
+        function updateImageSrc(src) {
+            document.getElementById('videoStream').src = src;
+        }
+    </script>
+
       <div class="animation-container">
         <canvas id="canvas"></canvas>
       </div>
-      <div id="log-container" class="row">
+      <div id="log-container" class="row" style="display: none;">
         <div id="log" class="log"></div>
         <div id="calibration" class="calibration-container"></div>
       </div>
-      <div class="controls">
+      <div class="controls" style="display: none;">
         <input type="checkbox" id="autoscroll"> Autoscroll
         <input type="checkbox" id="showTimestamp"> Show Timestamp
         <button id="butClear" type="button">Clear</button>
       </div>
       <!--<textarea id="log" readonly></textarea>-->
     </main>
+
+    
   </body>
 </html>

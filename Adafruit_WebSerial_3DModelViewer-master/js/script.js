@@ -505,7 +505,7 @@ function placeMarker(geometry) {
       colors[i + 2] = 1; // Blue
     } else if (visited[i / 3]) {
       colors[i] = 1;
-      colors[i + 1] = 0.2;
+      colors[i + 1] = 1;
       colors[i + 2] = 0.2;
     }
   }
