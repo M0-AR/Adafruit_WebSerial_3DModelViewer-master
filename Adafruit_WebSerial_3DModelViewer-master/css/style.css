@@ -144,8 +144,8 @@ button {
   position: fixed;
   bottom: 10px; /* Adjust as needed */
   left: 10px; /* Adjust as needed */
-  height: 40vh; /* Adjust as needed */
-  width: 35vw; /* Adjust as needed */
+  height: 30vh; /* Adjust as needed */
+  width: 30vw; /* Adjust as needed */
   z-index: 10;
 }
 
