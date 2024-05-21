@@ -513,23 +513,27 @@ function placeMarker(geometry, radius= 2.5) {
   }
 
 
-  // Get Euler angles in radians
-  const yaw = THREE.MathUtils.degToRad(orientation[0]); // Yaw (phi)
-  const pitch = THREE.MathUtils.degToRad(orientation[1]); // Pitch (theta)
-  // const zValue = THREE.MathUtils.degToRad(orientation[1]); // Pitch (theta)
-  var zValue = orientation[2]; // Z-value from the sensor
+  const yaw = THREE.MathUtils.degToRad(orientation[0]);
+  console.log("yaw " + yaw)
+  const pitch = THREE.MathUtils.degToRad(orientation[1]);
+  console.log("pitch" + " " + pitch)
+  const zValue = orientation[2];
+  console.log("zValue " + zValue)
 
-  // Adjusted spherical coordinates
-  const adjustedPhi = yaw;
-  // const adjustedTheta = Math.PI / 1 - (pitch + zValue*0.09); // Subtract from PI/2 for correct polar angle
+  // Adjust initial angles to place the marker at the back center (0, 0)
+  const adjustedPhi = yaw + Math.PI/2; // Rotate 180 degrees around Y-axis to point to the back
+  console.log("adjustedPhi " + adjustedPhi)
   const adjustedTheta = Math.PI / 1 - (zValue*0.09); // Subtract from PI/2 for correct polar angle
+  console.log("adjustedTheta " + adjustedTheta)
 
   // Convert to Cartesian coordinates (x, y, z) on the sphere's surface
-  // var x = radius * Math.sin(adjustedTheta) * Math.cos(adjustedPhi);
   const x = radius * Math.sin(adjustedTheta) * Math.cos(adjustedPhi);
   const y = radius * Math.sin(adjustedTheta) * Math.sin(adjustedPhi);
   const z = radius * Math.cos(adjustedTheta);
 
+  console.log("Marker position:", { x, y, z });
+
+  const markerPosition = new THREE.Vector3(x, y, z);
 
   const markerPosition = new THREE.Vector3(x, y, z);
 
