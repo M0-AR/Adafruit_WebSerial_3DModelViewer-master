@@ -517,15 +517,22 @@ function placeMarker(geometry, radius= 2.5) {
   console.log("yaw " + yaw)
   const pitch = THREE.MathUtils.degToRad(orientation[1]);
   console.log("pitch" + " " + pitch)
+  // Not converting the z value to radians because the sensor is on top of the cystoscopy and should reflect the camera, not the cystoscopy.
+  // const zValue = THREE.MathUtils.degToRad(orientation[2]);
   const zValue = orientation[2];
   console.log("zValue " + zValue)
 
   // Adjust initial angles to place the marker at the back center (0, 0)
-  const adjustedPhi = yaw + Math.PI/2; // Rotate 180 degrees around Y-axis to point to the back
+  const adjustedPhi = yaw + Math.PI / 2; // Rotate 90 degrees around Y-axis to point to the back
   console.log("adjustedPhi " + adjustedPhi)
-  const adjustedTheta = Math.PI / 1 - (zValue*0.09); // Subtract from PI/2 for correct polar angle
+
+  // The value '1' below is to ensure the marker always starts at the initial position when the user starts the 3D visualization
+  // The 0.09 is a constant to downscale the zValue, allowing the sensor to accurately reflect the camera movement.
+  const adjustedTheta = Math.PI / 1 - (zValue*0.09); // Correct logic line to adjust the polar angle appropriately
+  // const adjustedTheta = Math.PI / 1 - pitch + (zValue * 0.09); // If pitch (Y-axis) is activated, the marker will move exactly like the sensor, which is incorrect. We want the marker to move in the opposite direction of the sensor.
   console.log("adjustedTheta " + adjustedTheta)
 
+  
   // Convert to Cartesian coordinates (x, y, z) on the sphere's surface
   const x = radius * Math.sin(adjustedTheta) * Math.cos(adjustedPhi);
   const y = radius * Math.sin(adjustedTheta) * Math.sin(adjustedPhi);
